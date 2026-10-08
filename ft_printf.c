@@ -6,134 +6,119 @@
 /*   By: jocorral <jocorral@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/07 12:26:09 by jocorral          #+#    #+#             */
-/*   Updated: 2026/10/07 16:53:07 by jocorral         ###   ########.fr       */
+/*   Updated: 2026/10/08 11:22:13 by jocorral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdarg.h>
+#include "ft_printf.h"
+#ifdef TEST
+# include <stdio.h>
+# include <limits.h>
+#endif
 
-int	ft_printf(char const *, ...)
-{
-	//aquí cogemos los argumentos y vamos recorriendoel string
-}
-
-void	parser(char c, va_list args)
+static int	parser(char c, va_list *args)
 {
 	if (c == 'c')
-		ft_putchar(va_arg(args, int));
-	if (c == 's')
-		ft_putstr(va_arg(args, char *));
-	if (c == 'p')
-		puntero(va_arg(args, void *));
-	if (c == 'd')
-		ft_putnbr_base(va_arg(args, int), "0123456789");
-	if (c == 'i')
-		ft_putnbr_base(va_arg(args, int), "0123456789");
-	if (c == 'u')
-		ft_putnbr_base(va_arg(args, unsigned int), "0123456789");
-	if (c == 'x')
-		ft_putnbr_base(va_arg(args, unsigned int), "0123456789abcdef");
-	if (c == 'X')
-		ft_putnbr_base(va_arg(args, unsigned int), "0123456789ABCDEF");
-	if (c == '%')
-		ft_putchar('%');
+		return (ft_putchar(va_arg(*args, int)));
+	else if (c == 's')
+		return (ft_putstr(va_arg(*args, char *)));
+	else if (c == 'p')
+		return (puntero(va_arg(*args, void *)));
+	else if (c == 'd' || c == 'i')
+		return (ft_putnbr_base(va_arg(*args, int), "0123456789"));
+	else if (c == 'u')
+		return (ft_putnbr_ubase(va_arg(*args, unsigned int), "0123456789"));
+	else if (c == 'x')
+		return (ft_putnbr_ubase(va_arg(*args, unsigned int),
+				"0123456789abcdef"));
+	else if (c == 'X')
+		return (ft_putnbr_ubase(va_arg(*args, unsigned int),
+				"0123456789ABCDEF"));
+	else if (c == '%')
+		return (ft_putchar('%'));
+	return (ft_putchar('%') + ft_putchar(c));
 }
 
-int	ft_base_valida(char *base)
+int	ft_printf(char const *format, ...)
 {
-	int	i;
-	int	j;
-
-	i = 0;
-	while (base[i])
-	{
-		if (base[i] == '+' || base[i] == '-')
-			return (0);
-		j = i + 1;
-		while (base[j])
-		{
-			if (base[i] == base[j])
-				return (0);
-			j++;
-		}
-		i++;
-	}
-	if (i < 2)
-		return (0);
-	return (1);
-}
-
-void	puntero(void *ptr)
-{
-}
-
-int	ft_atoi(const char *nptr)
-{
+	va_list	args;
+	int		count;
 	int		i;
-	int		signo;
-	long	ret;
 
+	if (!format)
+		return (-1);
+	va_start(args, format);
+	count = 0;
 	i = 0;
-	signo = 1;
-	ret = 0;
-	while (nptr[i] == ' ' || (nptr[i] >= '\t' && nptr[i] <= '\r'))
-		i++;
-	if (nptr[i] == '-' || nptr[i] == '+')
+	while (format[i])
 	{
-		if (nptr[i] == '-')
-			signo = -1;
-		i++;
-	}
-	while (nptr[i] >= '0' && nptr[i] <= '9')
-	{
-		ret = ret * 10 + (nptr[i] - '0');
+		if (format[i] == '%' && format[i + 1])
+		{
+			i++;
+			count += parser(format[i], &args);
+		}
+		else if (format[i] != '%')
+			count += ft_putchar(format[i]);
 		i++;
 	}
-	return ((int)(ret * signo));
+	va_end(args);
+	return (count);
 }
 
-void	ft_putnbr_base(long nbr, char *base)
-{
-	int	len;
+#ifdef TEST
 
-	if (!ft_base_valida(base))
-		return ;
-	len = 0;
-	while (base[len])
-		len++;
-	if (nbr == -2147483648)
-	{
-		ft_putchar('-');
-		ft_putnbr_base(214748364, base);
-		ft_putchar(base[8 % len]);
-		return ;
-	}
-	if (nbr < 0)
-	{
-		ft_putchar('-');
-		nbr = -nbr;
-	}
-	if (nbr >= len)
-		ft_putnbr_base(nbr / len, base);
-	ft_putchar(base[nbr % len]);
+static void	comparar(int a, int b)
+{
+	if (a == b)
+		printf("\033[32mOK\033[0m (%d)\n\n", a);
+	else
+		printf("\033[31mKO\033[0m printf=%d ft_printf=%d\n\n", a, b);
+	fflush(stdout);
 }
 
-void	ft_putstr(char *str)
+static void	probar_c_s_p_d_i(void)
 {
-	while (*str != '\0')
-	{
-		write(1, str, 1);
-		str++;
-	}
-}
+	int	a;
+	int	x;
 
-void	ft_putchar(char c)
-{
-	write(1, &c, 1);
+	a = printf("c: [%c][%c]\n", 'A', 0);
+	fflush(stdout);
+	comparar(a, ft_printf("c: [%c][%c]\n", 'A', 0));
+	a = printf("s: [%s][%s][%s]\n", "hola", "", (char *) NULL);
+	fflush(stdout);
+	comparar(a, ft_printf("s: [%s][%s][%s]\n", "hola", "", (char *) NULL));
+	a = printf("p: [%p][%p]\n", &x, NULL);
+	fflush(stdout);
+	comparar(a, ft_printf("p: [%p][%p]\n", &x, NULL));
+	a = printf("d: [%d][%d][%d]\n", 0, INT_MAX, INT_MIN);
+	fflush(stdout);
+	comparar(a, ft_printf("d: [%d][%d][%d]\n", 0, INT_MAX, INT_MIN));
+	a = printf("i: [%i][%i]\n", 42, -42);
+	fflush(stdout);
+	comparar(a, ft_printf("i: [%i][%i]\n", 42, -42));
 }
 
 int	main(void)
 {
-	//llamar a la libreía de libft con el .a y el .h
-	//asignar los va_start y to el rollo
+	int	a;
+
+	probar_c_s_p_d_i();
+	a = printf("u: [%u][%u]\n", 0, UINT_MAX);
+	fflush(stdout);
+	comparar(a, ft_printf("u: [%u][%u]\n", 0, UINT_MAX));
+	a = printf("x: [%x][%x]\n", 255, -1);
+	fflush(stdout);
+	comparar(a, ft_printf("x: [%x][%x]\n", 255, -1));
+	a = printf("X: [%X][%X]\n", 255, -1);
+	fflush(stdout);
+	comparar(a, ft_printf("X: [%X][%X]\n", 255, -1));
+	a = printf("%%: [%%][%%%%]\n");
+	fflush(stdout);
+	comparar(a, ft_printf("%%: [%%][%%%%]\n"));
+	a = printf("otro: [%k]\n");
+	fflush(stdout);
+	comparar(a, ft_printf("otro: [%k]\n"));
+	return (0);
 }
+
+#endif
