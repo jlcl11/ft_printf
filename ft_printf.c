@@ -6,7 +6,7 @@
 /*   By: jocorral <jocorral@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/07 12:26:09 by jocorral          #+#    #+#             */
-/*   Updated: 2026/10/08 12:23:25 by jocorral         ###   ########.fr       */
+/*   Updated: 2026/10/08 13:28:15 by jocorral         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,15 +59,16 @@ int	ft_printf(char const *format, ...)
 	return (count);
 }
 
-int	main(void)
+/*int	main(void)
 {
-	int	edad;
-	int	total;
+int	edad;
+int	total;
 
-	edad = 23;
-	total = ft_printf("Me llamo %s, mi inicial es %c, tengo %d años, "
-		"nací hace %i, mi edad vive en %p, en unsigned es %u, "
-	"en hex es %x y en HEX es %X, y soy un 100%% persona\n",
-	"Jose", 'J', edad, -edad, &edad, edad, 255, 255);
-	return (0);
+edad = 23;
+total = ft_printf("Me llamo %s, mi inicial es %c, tengo %d años, "
+"nací hace %i, mi edad vive en %p, en unsigned es %u, "
+"en hex es %x y en HEX es %X, y tengo una discapacidad del  100%%\n",
+"Jose", 'J', edad, -edad, &edad, edad, 255, 255);
+return (0);
 }
+*/
