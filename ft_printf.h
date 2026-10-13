@@ -14,9 +14,11 @@
 # define FT_PRINTF_H
 
 # include <stdarg.h>
-# include <unistd.h>
+# include "libft/libft.h"
 
 int	ft_printf(char const *format, ...);
+int	ft_parser(char c, va_list *args);
+int	ft_format(char const **format, va_list *args);
 int	ft_putchar(char c);
 int	ft_putstr(char *str);
 int	ft_putnbr_base(long nbr, char *base);

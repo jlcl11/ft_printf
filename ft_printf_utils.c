@@ -14,22 +14,16 @@
 
 int	ft_putchar(char c)
 {
-	return (write(1, &c, 1));
+	ft_putchar_fd(c, 1);
+	return (1);
 }
 
 int	ft_putstr(char *str)
 {
-	int	count;
-
 	if (!str)
-		return (ft_putstr("(null)"));
-	count = 0;
-	while (str[count])
-	{
-		ft_putchar(str[count]);
-		count++;
-	}
-	return (count);
+		str = "(null)";
+	ft_putstr_fd(str, 1);
+	return (ft_strlen(str));
 }
 
 int	ft_putnbr_ubase(unsigned long nbr, char *base)
@@ -37,9 +31,7 @@ int	ft_putnbr_ubase(unsigned long nbr, char *base)
 	unsigned long	len;
 	int				count;
 
-	len = 0;
-	while (base[len])
-		len++;
+	len = ft_strlen(base);
 	count = 0;
 	if (nbr >= len)
 		count += ft_putnbr_ubase(nbr / len, base);
