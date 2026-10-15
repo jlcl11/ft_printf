@@ -15,7 +15,7 @@ Igual que `printf`, escribe en la salida estándar y devuelve el número de cara
 
 Conversiones soportadas: `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X` y `%%`.
 
-El bonus añade el formato `%[flags][ancho][.precisión]conversión`, con las flags `-`, `0`, `#`, `+` y espacio.
+El bonus añade el ancho, la precisión y las flags `-`, `0`, `#`, `+` y espacio (ver la sección [Bonus](#bonus)).
 
 ## Instrucciones
 
@@ -83,8 +83,40 @@ Lo más delicado:
 - No hay buffer ni `malloc`: cada carácter se escribe al momento con `write`. Es menos eficiente que el `printf` real, pero no puede haber leaks y el
   contador de caracteres es siempre exacto.
 
-En el bonus, `ft_format` lee antes las flags, el ancho y la precisión y los guarda en una estructura `t_fmt`, que es lo único que necesitan las funciones de
-impresión para saber cuánto relleno poner y dónde.
+## Bonus
+
+`make bonus` genera la misma librería, pero aceptando el formato completo `%[flags][ancho][.precisión]conversión`:
+
+| Elemento | Efecto | Ejemplo | Salida |
+|---|---|---|---|
+| ancho | Mínimo de caracteres; rellena con espacios a la izquierda | `"[%5d]", 42` | `[   42]` |
+| `-` | Alinea a la izquierda | `"[%-5d]", 42` | `[42   ]` |
+| `0` | Rellena con ceros en vez de espacios | `"[%05d]", -42` | `[-0042]` |
+| `.` | Precisión: mínimo de dígitos en números, máximo de caracteres en `%s` | `"[%.3d]", 7` / `"[%.2s]", "hola"` | `[007]` / `[ho]` |
+| `#` | Añade `0x` / `0X` en `%x` / `%X` si el número no es 0 | `"[%#x]", 255` | `[0xff]` |
+| `+` | Muestra siempre el signo en `%d` / `%i` | `"[%+d]", 42` | `[+42]` |
+| espacio | Deja un espacio delante de los positivos | `"[% d]", 42` | `[ 42]` |
+
+Como en el `printf` real, `-` y la precisión anulan a `0`, y `+` anula al espacio.
+
+Entre la parte obligatoria y el bonus solo cambia una función, `ft_format`; `ft_printf`, `ft_parser` y `ft_printf_utils.c` son los mismos archivos en las
+dos versiones. En la obligatoria (`ft_printf_format.c`) `ft_format` solo llama a `ft_parser`. En el bonus (`ft_printf_format_bonus.c`) hace tres cosas:
+
+1. Lee las flags, el ancho y la precisión y los guarda en una estructura `t_format`. Es una variable local, así que sigue sin haber `malloc`. La precisión
+   empieza en `-1` para distinguir "no hay precisión" de "precisión 0" (`%.0d` con un 0 no imprime nada).
+2. Avanza el puntero de `ft_printf` hasta la letra de la conversión; por eso recibe la cadena de formato como `char const **`.
+3. Llama a la función de esa conversión (`ft_printf_conv_bonus.c`). `%%` y los casos raros se siguen delegando en `ft_parser`.
+
+Lo más delicado es que todos los números (`%d`, `%i`, `%u`, `%x`, `%X` y `%p`) acaban en una sola función, `ft_put_nbr` (`ft_printf_nbr_bonus.c`). Las
+funciones de conversión no imprimen nada: solo eligen la base y un *prefijo* (`-`, `+`, espacio, `0x`...) y le pasan el número ya en positivo. `ft_put_nbr`
+calcula cuántas cifras y cuántos ceros hacen falta y escribe siempre en el mismo orden:
+
+```
+[espacios] [prefijo] [ceros] [dígitos] [espacios]
+```
+
+Como el prefijo va antes de los ceros, `%05d` con -42 da `-0042` y no `00-42`. Los dígitos los sigue imprimiendo `ft_putnbr_ubase`, la misma función de la
+parte obligatoria.
 
 ## Recursos
 
