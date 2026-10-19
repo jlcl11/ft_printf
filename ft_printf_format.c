@@ -12,7 +12,7 @@
 
 #include "ft_printf.h"
 
-int	ft_format(char const **format, va_list *args)
+int	ft_format(char const **format_addr, va_list *args)
 {
-	return (ft_parser(**format, args));
+	return (ft_parser(**format_addr, args));
 }

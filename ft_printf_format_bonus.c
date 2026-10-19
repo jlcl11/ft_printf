@@ -40,24 +40,25 @@ static int	parse_fmt(char const *s, t_format *f)
 	return (i);
 }
 
-int	ft_format(char const **format, va_list *args)
+int	ft_format(char const **format_addr, va_list *args)
 {
-	t_format	f;
-	char		c;
+	t_format	options;
+	char		letter;
 
-	*format += parse_fmt(*format, &f);
-	c = **format;
-	if (c == 'c')
-		return (ft_print_char(&f, va_arg(*args, int)));
-	else if (c == 's')
-		return (ft_print_str(&f, va_arg(*args, char *)));
-	else if (c == 'p')
-		return (ft_print_ptr(&f, va_arg(*args, void *)));
-	else if (c == 'd' || c == 'i')
-		return (ft_print_int(&f, va_arg(*args, int)));
-	else if (c == 'u' || c == 'x' || c == 'X')
-		return (ft_print_uint(&f, va_arg(*args, unsigned int), c));
-	return (ft_parser(c, args));
+	*format_addr += parse_fmt(*format_addr, &options);
+	letter = **format_addr;
+	if (letter == 'c')
+		return (ft_print_char(&options, va_arg(*args, int)));
+	else if (letter == 's')
+		return (ft_print_str(&options, va_arg(*args, char *)));
+	else if (letter == 'p')
+		return (ft_print_ptr(&options, va_arg(*args, void *)));
+	else if (letter == 'd' || letter == 'i')
+		return (ft_print_int(&options, va_arg(*args, int)));
+	else if (letter == 'u' || letter == 'x' || letter == 'X')
+		return (ft_print_uint(&options, va_arg(*args, unsigned int),
+				letter));
+	return (ft_parser(letter, args));
 }
 
 /*int	main(void)
