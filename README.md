@@ -13,7 +13,8 @@ int	ft_printf(char const *format, ...);
 
 Igual que `printf`, escribe en la salida estándar y devuelve el número de caracteres impresos.
 
-Conversiones soportadas: `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X` y `%%`.
+Conversiones soportadas: `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X` y `%%`. Como el `printf` de Linux, una cadena `NULL` se imprime como `(null)` y un
+puntero `NULL` como `(nil)`. Si la conversión no existe, imprime el `%` y la letra tal cual.
 
 El bonus añade el ancho, la precisión y las flags `-`, `0`, `#`, `+` y espacio (ver la sección [Bonus](#bonus)).
 
@@ -97,7 +98,8 @@ Lo más delicado:
 | `+` | Muestra siempre el signo en `%d` / `%i` | `"[%+d]", 42` | `[+42]` |
 | espacio | Deja un espacio delante de los positivos | `"[% d]", 42` | `[ 42]` |
 
-Como en el `printf` real, `-` y la precisión anulan a `0`, y `+` anula al espacio.
+Como en el `printf` real, `-` y la precisión anulan a `0`, y `+` anula al espacio. `+` y espacio también valen para `%p` (`+0x...`, ` 0x...`). Una
+cadena `NULL` con una precisión menor que 6 no imprime nada, en vez de un `(null)` cortado.
 
 Entre la parte obligatoria y el bonus solo cambia una función, `ft_format`; `ft_printf`, `ft_parser` y `ft_printf_utils.c` son los mismos archivos en las
 dos versiones. En la obligatoria (`ft_printf_format.c`) `ft_format` solo llama a `ft_parser`. En el bonus (`ft_printf_format_bonus.c`) hace tres cosas:
@@ -125,3 +127,20 @@ parte obligatoria.
 - La Norma de 42 (documento del cursus), para las reglas de estilo.
 
 La IA se ha usado para corregir errores de Norma y para redactar este README. Todo el código ha sido revisado, probado y entendido antes de entregarlo.
+
+## Estructura
+
+```
+ft_printf.h               cabecera con los prototipos de la parte obligatoria
+ft_printf.c               ft_printf y ft_parser (comunes a las dos versiones)
+ft_printf_utils.c         ft_putchar, ft_putstr, ft_putnbr_base, ft_putnbr_ubase y puntero
+ft_printf_format.c        ft_format de la parte obligatoria
+ft_printf_bonus.h         t_format y los prototipos del bonus
+ft_printf_format_bonus.c  ft_format del bonus: lee flags, ancho y precisión
+ft_printf_conv_bonus.c    una función por conversión: elige base y prefijo
+ft_printf_nbr_bonus.c     ft_put_nbr y ft_putpad: relleno, prefijo, ceros y dígitos
+libft/                    la libft, con su propio Makefile
+Makefile                  all / bonus / clean / fclean / re
+obj/                      .o generados por make (no se sube)
+libftprintf.a             librería final (no se sube)
+```
