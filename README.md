@@ -1,49 +1,49 @@
-*Este proyecto ha sido creado como parte del currículo de 42 por jocorral.*
+*This project has been created as part of the 42 curriculum by jocorral.*
 
 # ft_printf
 
-## Descripción
+## Description
 
-`ft_printf` es una reimplementación de la función `printf()` de la `libc`. El objetivo es aprender a usar funciones variádicas (las que reciben un número
-variable de argumentos) con `<stdarg.h>`. El resultado es la librería `libftprintf.a`, con una única función pública:
+`ft_printf` is a reimplementation of the `libc` function `printf()`. The goal is to learn how to use variadic functions (those that take a variable
+number of arguments) with `<stdarg.h>`. The result is the `libftprintf.a` library, with a single public function:
 
 ```c
 int	ft_printf(char const *format, ...);
 ```
 
-Igual que `printf`, escribe en la salida estándar y devuelve el número de caracteres impresos.
+Like `printf`, it writes to standard output and returns the number of characters printed.
 
-Conversiones soportadas: `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X` y `%%`. Como el `printf` de Linux, una cadena `NULL` se imprime como `(null)` y un
-puntero `NULL` como `(nil)`. Si la conversión no existe, imprime el `%` y la letra tal cual.
+Supported conversions: `%c`, `%s`, `%p`, `%d`, `%i`, `%u`, `%x`, `%X` and `%%`. Like Linux `printf`, a `NULL` string is printed as `(null)` and a
+`NULL` pointer as `(nil)`. If the conversion does not exist, it prints the `%` and the letter as they are.
 
-El bonus añade el ancho, la precisión y las flags `-`, `0`, `#`, `+` y espacio (ver la sección [Bonus](#bonus)).
+The bonus adds width, precision and the `-`, `0`, `#`, `+` and space flags (see the [Bonus](#bonus) section).
 
-## Instrucciones
+## Instructions
 
-Compilar (genera `libftprintf.a` en la raíz del repo):
+Build (generates `libftprintf.a` at the root of the repo):
 
 ```sh
 make
 ```
 
-Otras reglas del `Makefile`:
+Other `Makefile` rules:
 
 ```sh
-make bonus    # compila la librería con la versión bonus
-make clean    # borra obj/ (la de printf y la de libft)
-make fclean   # borra además libftprintf.a y libft/libft.a
+make bonus    # builds the library with the bonus version
+make clean    # removes obj/ (both printf's and libft's)
+make fclean   # also removes libftprintf.a and libft/libft.a
 make re       # fclean + all
 ```
 
-La libft está en `libft/` con su propio `Makefile`. El de `ft_printf` la compila primero y mete sus objetos dentro de `libftprintf.a`, así que solo hay que
-enlazar esa librería:
+Libft lives in `libft/` with its own `Makefile`. The `ft_printf` one builds it first and puts its objects inside `libftprintf.a`, so you only need to
+link that library:
 
 ```c
 #include "ft_printf.h"
 
 int	main(void)
 {
-	ft_printf("Hola %s, tienes %d años\n", "mundo", 42);
+	ft_printf("Hello %s, you are %d years old\n", "world", 42);
 	return (0);
 }
 ```
@@ -52,95 +52,95 @@ int	main(void)
 cc -Wall -Wextra -Werror main.c -L. -lftprintf && ./a.out
 ```
 
-### Probar sin Makefile
+### Testing without the Makefile
 
-`ft_printf.c` y `ft_printf_format_bonus.c` tienen al final, dentro de un comentario `/* ... */`, un `main` de prueba.
+`ft_printf.c` and `ft_printf_format_bonus.c` have a test `main` at the end, inside a `/* ... */` comment.
 
-1. Descomenta el `main` del archivo que quieras probar.
-2. Compila la versión que corresponda:
+1. Uncomment the `main` of the file you want to test.
+2. Compile the matching version:
 
 ```sh
-cc -Wall -Wextra -Werror ft_printf.c ft_printf_utils.c ft_printf_format.c libft/ft_*.c && ./a.out    # obligatoria
+cc -Wall -Wextra -Werror ft_printf.c ft_printf_utils.c ft_printf_format.c libft/ft_*.c && ./a.out    # mandatory
 cc -Wall -Wextra -Werror ft_printf.c ft_printf_utils.c ft_printf_*_bonus.c libft/ft_*.c && ./a.out   # bonus
 ```
 
-3. Vuelve a comentar el bloque antes de hacer commit.
+3. Comment the block out again before committing.
 
-No se puede compilar con `*.c`: `ft_format` está definida en `ft_printf_format.c` y en `ft_printf_format_bonus.c`, y solo puede enlazarse una de las dos.
+You cannot compile with `*.c`: `ft_format` is defined in both `ft_printf_format.c` and `ft_printf_format_bonus.c`, and only one of the two can be linked.
 
-## Algoritmo y estructura de datos
+## Algorithm and data structure
 
-`ft_printf` recorre la cadena de formato una sola vez. Si el carácter no es `%`, lo imprime. Si es `%`, avanza al siguiente y llama a `ft_format`, que
-acaba en `ft_parser`: una cadena de `if / else if` que saca el argumento con `va_arg` del tipo adecuado y llama a la función que lo imprime. Cada función
-devuelve cuántos caracteres ha escrito y `ft_printf` los va sumando.
+`ft_printf` goes through the format string once. If the character is not `%`, it prints it. If it is `%`, it moves to the next one and calls `ft_format`, which
+ends up in `ft_parser`: a chain of `if / else if` that pulls the argument of the right type with `va_arg` and calls the function that prints it. Each function
+returns how many characters it wrote and `ft_printf` adds them up.
 
-Lo más delicado:
+The trickiest parts:
 
-- Todos los números se imprimen con una sola función recursiva, `ft_putnbr_ubase`: primero se llama a sí misma con `nbr / base` y después imprime el dígito
-  `nbr % base`, así las cifras salen en orden sin guardarlas en ningún sitio. La base se pasa como cadena (`"0123456789"`, `"0123456789abcdef"`...), por eso
-  la misma función sirve para `%u`, `%x`, `%X` y `%p`.
-- `ft_putnbr_base` (la de `%d` y `%i`) recibe un `long`, no un `int`, para poder negar `INT_MIN` sin desbordar.
-- El `va_list` se pasa por puntero (`va_list *`). Si se pasara por valor, al volver de la función no estaría garantizado que la lista hubiera avanzado.
-- No hay buffer ni `malloc`: cada carácter se escribe al momento con `write`. Es menos eficiente que el `printf` real, pero no puede haber leaks y el
-  contador de caracteres es siempre exacto.
+- All numbers are printed with a single recursive function, `ft_putnbr_ubase`: it first calls itself with `nbr / base` and then prints the digit
+  `nbr % base`, so the digits come out in order without storing them anywhere. The base is passed as a string (`"0123456789"`, `"0123456789abcdef"`...), which is why
+  the same function works for `%u`, `%x`, `%X` and `%p`.
+- `ft_putnbr_base` (the one for `%d` and `%i`) takes a `long`, not an `int`, to be able to negate `INT_MIN` without overflowing.
+- The `va_list` is passed by pointer (`va_list *`). If it were passed by value, there would be no guarantee that the list had advanced when the function returned.
+- There is no buffer and no `malloc`: each character is written right away with `write`. It is less efficient than the real `printf`, but there can be no leaks and the
+  character count is always exact.
 
 ## Bonus
 
-`make bonus` genera la misma librería, pero aceptando el formato completo `%[flags][ancho][.precisión]conversión`:
+`make bonus` generates the same library, but accepting the full `%[flags][width][.precision]conversion` format:
 
-| Elemento | Efecto | Ejemplo | Salida |
+| Element | Effect | Example | Output |
 |---|---|---|---|
-| ancho | Mínimo de caracteres; rellena con espacios a la izquierda | `"[%5d]", 42` | `[   42]` |
-| `-` | Alinea a la izquierda | `"[%-5d]", 42` | `[42   ]` |
-| `0` | Rellena con ceros en vez de espacios | `"[%05d]", -42` | `[-0042]` |
-| `.` | Precisión: mínimo de dígitos en números, máximo de caracteres en `%s` | `"[%.3d]", 7` / `"[%.2s]", "hola"` | `[007]` / `[ho]` |
-| `#` | Añade `0x` / `0X` en `%x` / `%X` si el número no es 0 | `"[%#x]", 255` | `[0xff]` |
-| `+` | Muestra siempre el signo en `%d` / `%i` | `"[%+d]", 42` | `[+42]` |
-| espacio | Deja un espacio delante de los positivos | `"[% d]", 42` | `[ 42]` |
+| width | Minimum number of characters; pads with spaces on the left | `"[%5d]", 42` | `[   42]` |
+| `-` | Aligns to the left | `"[%-5d]", 42` | `[42   ]` |
+| `0` | Pads with zeros instead of spaces | `"[%05d]", -42` | `[-0042]` |
+| `.` | Precision: minimum digits for numbers, maximum characters for `%s` | `"[%.3d]", 7` / `"[%.2s]", "hello"` | `[007]` / `[he]` |
+| `#` | Adds `0x` / `0X` in `%x` / `%X` if the number is not 0 | `"[%#x]", 255` | `[0xff]` |
+| `+` | Always shows the sign in `%d` / `%i` | `"[%+d]", 42` | `[+42]` |
+| space | Leaves a space in front of positive numbers | `"[% d]", 42` | `[ 42]` |
 
-Como en el `printf` real, `-` y la precisión anulan a `0`, y `+` anula al espacio. `+` y espacio también valen para `%p` (`+0x...`, ` 0x...`). Una
-cadena `NULL` con una precisión menor que 6 no imprime nada, en vez de un `(null)` cortado.
+As in the real `printf`, `-` and precision override `0`, and `+` overrides space. `+` and space also work for `%p` (`+0x...`, ` 0x...`). A
+`NULL` string with a precision below 6 prints nothing, instead of a truncated `(null)`.
 
-Entre la parte obligatoria y el bonus solo cambia una función, `ft_format`; `ft_printf`, `ft_parser` y `ft_printf_utils.c` son los mismos archivos en las
-dos versiones. En la obligatoria (`ft_printf_format.c`) `ft_format` solo llama a `ft_parser`. En el bonus (`ft_printf_format_bonus.c`) hace tres cosas:
+Between the mandatory part and the bonus only one function changes, `ft_format`; `ft_printf`, `ft_parser` and `ft_printf_utils.c` are the same files in
+both versions. In the mandatory part (`ft_printf_format.c`), `ft_format` only calls `ft_parser`. In the bonus (`ft_printf_format_bonus.c`) it does three things:
 
-1. Lee las flags, el ancho y la precisión y los guarda en una estructura `t_format`. Es una variable local, así que sigue sin haber `malloc`. La precisión
-   empieza en `-1` para distinguir "no hay precisión" de "precisión 0" (`%.0d` con un 0 no imprime nada).
-2. Avanza el puntero de `ft_printf` hasta la letra de la conversión; por eso recibe la cadena de formato como `char const **`.
-3. Llama a la función de esa conversión (`ft_printf_conv_bonus.c`). `%%` y los casos raros se siguen delegando en `ft_parser`.
+1. It reads the flags, width and precision and stores them in a `t_format` structure. It is a local variable, so there is still no `malloc`. Precision
+   starts at `-1` to tell "no precision" apart from "precision 0" (`%.0d` with a 0 prints nothing).
+2. It moves `ft_printf`'s pointer forward to the conversion letter; that is why it takes the format string as `char const **`.
+3. It calls the function for that conversion (`ft_printf_conv_bonus.c`). `%%` and the odd cases are still delegated to `ft_parser`.
 
-Lo más delicado es que todos los números (`%d`, `%i`, `%u`, `%x`, `%X` y `%p`) acaban en una sola función, `ft_put_nbr` (`ft_printf_nbr_bonus.c`). Las
-funciones de conversión no imprimen nada: solo eligen la base y un *prefijo* (`-`, `+`, espacio, `0x`...) y le pasan el número ya en positivo. `ft_put_nbr`
-calcula cuántas cifras y cuántos ceros hacen falta y escribe siempre en el mismo orden:
-
-```
-[espacios] [prefijo] [ceros] [dígitos] [espacios]
-```
-
-Como el prefijo va antes de los ceros, `%05d` con -42 da `-0042` y no `00-42`. Los dígitos los sigue imprimiendo `ft_putnbr_ubase`, la misma función de la
-parte obligatoria.
-
-## Recursos
-
-- Páginas de manual: `man 3 printf` y `man 3 stdarg`.
-- [cppreference.com](https://en.cppreference.com/w/c/io/fprintf) para el comportamiento exacto de cada flag y de las funciones variádicas.
-- La Norma de 42 (documento del cursus), para las reglas de estilo.
-
-La IA se ha usado para corregir errores de Norma y para redactar este README. Todo el código ha sido revisado, probado y entendido antes de entregarlo.
-
-## Estructura
+The trickiest part is that all numbers (`%d`, `%i`, `%u`, `%x`, `%X` and `%p`) end up in a single function, `ft_put_nbr` (`ft_printf_nbr_bonus.c`). The
+conversion functions print nothing: they only choose the base and a *prefix* (`-`, `+`, space, `0x`...) and pass it the number already made positive. `ft_put_nbr`
+works out how many digits and how many zeros are needed and always writes in the same order:
 
 ```
-ft_printf.h               cabecera con los prototipos de la parte obligatoria
-ft_printf.c               ft_printf y ft_parser (comunes a las dos versiones)
-ft_printf_utils.c         ft_putchar, ft_putstr, ft_putnbr_base, ft_putnbr_ubase y puntero
-ft_printf_format.c        ft_format de la parte obligatoria
-ft_printf_bonus.h         t_format y los prototipos del bonus
-ft_printf_format_bonus.c  ft_format del bonus: lee flags, ancho y precisión
-ft_printf_conv_bonus.c    una función por conversión: elige base y prefijo
-ft_printf_nbr_bonus.c     ft_put_nbr y ft_putpad: relleno, prefijo, ceros y dígitos
-libft/                    la libft, con su propio Makefile
+[spaces] [prefix] [zeros] [digits] [spaces]
+```
+
+Because the prefix goes before the zeros, `%05d` with -42 gives `-0042` and not `00-42`. The digits are still printed by `ft_putnbr_ubase`, the same function as in the
+mandatory part.
+
+## Resources
+
+- Manual pages: `man 3 printf` and `man 3 stdarg`.
+- [cppreference.com](https://en.cppreference.com/w/c/io/fprintf) for the exact behavior of each flag and of variadic functions.
+- The 42 Norm (cursus document), for the style rules.
+
+AI was used to fix Norm errors and to write this README. All the code was reviewed, tested and understood before submitting it.
+
+## Structure
+
+```
+ft_printf.h               header with the prototypes of the mandatory part
+ft_printf.c               ft_printf and ft_parser (common to both versions)
+ft_printf_utils.c         ft_putchar, ft_putstr, ft_putnbr_base, ft_putnbr_ubase and pointer
+ft_printf_format.c        ft_format of the mandatory part
+ft_printf_bonus.h         t_format and the bonus prototypes
+ft_printf_format_bonus.c  bonus ft_format: reads flags, width and precision
+ft_printf_conv_bonus.c    one function per conversion: chooses base and prefix
+ft_printf_nbr_bonus.c     ft_put_nbr and ft_putpad: padding, prefix, zeros and digits
+libft/                    libft, with its own Makefile
 Makefile                  all / bonus / clean / fclean / re
-obj/                      .o generados por make (no se sube)
-libftprintf.a             librería final (no se sube)
+obj/                      .o files generated by make (not pushed)
+libftprintf.a             final library (not pushed)
 ```
